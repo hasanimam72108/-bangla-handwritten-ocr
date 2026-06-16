@@ -11,6 +11,9 @@ REPO_DIR = "/kaggle/working/bangla-handwritten-ocr"
 
 if not os.path.exists(REPO_DIR):
     !git clone {REPO_URL} {REPO_DIR}
+else:
+    # Pull latest changes (tokenizer fix, config update)
+    !git -C {REPO_DIR} pull
     
 os.chdir(REPO_DIR)
 sys.path.insert(0, REPO_DIR)
