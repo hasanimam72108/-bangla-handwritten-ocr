@@ -17,23 +17,45 @@ DATA_DIR = "/kaggle/working/data/bangla_combined"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 # --- Kaggle input paths (auto-discover) ---
-KAGGLE_INPUT = "/kaggle/input"
-print("Available Kaggle inputs:")
-for d in os.listdir(KAGGLE_INPUT):
-    print(f"  /kaggle/input/{d}/")
+# Try both nested (datasets/) and flat paths
+KAGGLE_CANDIDATES = ["/kaggle/input/datasets", "/kaggle/input"]
+KAGGLE_INPUT = None
+for path in KAGGLE_CANDIDATES:
+    if os.path.isdir(path):
+        entries = [d for d in os.listdir(path) if d not in (".ipynb_checkpoints", "__pycache__")]
+        if entries:
+            KAGGLE_INPUT = path
+            break
+if not KAGGLE_INPUT:
+    raise RuntimeError("Could not find Kaggle input directory")
+
+print(f"Kaggle input base: {KAGGLE_INPUT}")
+print("Available inputs:")
+for d in sorted(os.listdir(KAGGLE_INPUT)):
+    print(f"  {KAGGLE_INPUT}/{d}/")
 
 # Find Bongabdo and BanglaWriting paths
 BONGABDO_PATH = None
 BANGLAWRITING_PATH = None
-for d in os.listdir(KAGGLE_INPUT):
-    full = os.path.join(KAGGLE_INPUT, d)
-    if "bongabdo" in d.lower():
-        BONGABDO_PATH = full
-    elif "banglawriting" in d.lower() or "bangla-writing" in d.lower() or "bangla_writing" in d.lower():
-        BANGLAWRITING_PATH = full
+for root, dirs, files in os.walk(KAGGLE_INPUT):
+    if "Images" in dirs and "Annotations" in dirs and not BONGABDO_PATH and "bongabdo" in root.lower():
+        BONGABDO_PATH = root
+    if "Images" in dirs and "Annotations" in dirs and not BANGLAWRITING_PATH and "banglawriting" in root.lower():
+        BANGLAWRITING_PATH = root
 
-print(f"\nBongabdo path: {BONGABDO_PATH}")
-print(f"BanglaWriting path: {BANGLAWRITING_PATH}")
+if not BONGABDO_PATH:
+    for d in os.listdir(KAGGLE_INPUT):
+        full = os.path.join(KAGGLE_INPUT, d)
+        if "bongabdo" in d.lower():
+            BONGABDO_PATH = full
+if not BANGLAWRITING_PATH:
+    for d in os.listdir(KAGGLE_INPUT):
+        full = os.path.join(KAGGLE_INPUT, d)
+        if "banglawriting" in d.lower() or "bangla-writing" in d.lower() or "bangla_writing" in d.lower():
+            BANGLAWRITING_PATH = full
+
+print(f"\nBongabdo root: {BONGABDO_PATH}")
+print(f"BanglaWriting root: {BANGLAWRITING_PATH}")
 
 # --- Scan directory for images and annotations ---
 def scan_dataset(base_path):
@@ -115,4 +137,11 @@ all_records = bongabdo_records + banglawriting_records
 print(f"\nTotal combined samples: {len(all_records)}")
 
 if len(all_records) == 0:
+    print("\nDIAGNOSTIC: No samples found.")
+    print(f"  BONGABDO_PATH exists: {BONGABDO_PATH and os.path.isdir(BONGABDO_PATH)}")
+    print(f"  BANGLAWRITING_PATH exists: {BANGLAWRITING_PATH and os.path.isdir(BANGLAWRITING_PATH)}")
+    if BONGABDO_PATH:
+        print(f"  Bongabdo contents: {os.listdir(BONGABDO_PATH)[:10]}")
+    if BANGLAWRITING_PATH:
+        print(f"  BanglaWriting contents: {os.listdir(BANGLAWRITING_PATH)[:10]}")
     raise RuntimeError("No samples found! Check Kaggle dataset input paths.")
