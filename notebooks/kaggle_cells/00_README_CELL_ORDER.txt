@@ -6,9 +6,9 @@ Cell #  | File                       | What it does
 --------|----------------------------|---------------------------------------------------------------
    1    | 01_clone_repo.py           | Clone the GitHub repo
    2    | 02_install_deps.py         | Install Python dependencies
-   3    | 03_load_dataset.py         | Load BN-HTRd from Hugging Face
-   4    | 04_save_images.py          | Save all images to disk + create labels.csv
-   5    | 05_show_stats.py           | Display dataset statistics (total samples, unique words)
+   3    | 03_load_datasets.py        | Scan Kaggle inputs (Bongabdo + BanglaWriting), load images & text
+   4    | 04_save_images.py          | Save images to working dir + create unified labels.csv
+   5    | 05_show_stats.py           | Display dataset statistics (total samples, unique words, etc.)
    6    | 06_split_dataset.py        | Split into train/val/test (70/15/15)
    7    | 07_train_model.py          | TRAIN the model with BnGraphemizer tokenizer (~2-5 hours)
    8    | 08_train_bpe_optional.py   | (Optional) Train model with BPE tokenizer for comparison
@@ -21,5 +21,7 @@ Cell #  | File                       | What it does
   15    | 15_run_custom_prediction.py | Run model on your custom image and see result
   16    | 16_export_model.py         | Copy model to output directory for download
 
-NOTE: Cells 3-6 must run sequentially in order (they share variables).
-Cells 10-15 require Cell 7 (training) to have completed successfully.
+NOTES:
+- Ignore the old 03_load_dataset.py (without 's') — use 03_load_datasets.py instead.
+- Cells 3-6 must run sequentially (they share variables).
+- Cells 10-15 require Cell 7 (training) to have completed successfully.

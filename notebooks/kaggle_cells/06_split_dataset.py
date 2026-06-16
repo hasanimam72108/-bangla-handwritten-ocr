@@ -29,7 +29,7 @@ def save_split(indices, split_name):
         if os.path.exists(src):
             os.rename(src, dst)
         rows.append({"image": row["image"], "text": row["text"]})
-    
+
     out_csv = os.path.join(DATA_DIR, f"{split_name}.csv")
     pd.DataFrame(rows).to_csv(out_csv, index=False, encoding="utf-8")
     return len(rows)
