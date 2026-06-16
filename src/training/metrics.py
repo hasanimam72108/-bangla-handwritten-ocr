@@ -29,7 +29,7 @@ def evaluate_model(model, dataloader, tokenizer, device):
 
         generated_ids = model.generate(
             pixel_values,
-            max_length=model.config.max_length,
+            max_length=model.generation_config.max_length,
             num_beams=4,
             early_stopping=True,
         )

@@ -34,13 +34,13 @@ def build_model(
 
     model = VisionEncoderDecoderModel(encoder=encoder, decoder=decoder)
 
-    model.config.decoder_start_token_id = tokenizer.bos_token_id if tokenizer else 0
-    model.config.pad_token_id = tokenizer.pad_token_id if tokenizer else 0
-    model.config.eos_token_id = tokenizer.eos_token_id if tokenizer else 0
-    model.config.max_length = max_length
+    model.generation_config.decoder_start_token_id = tokenizer.bos_token_id if tokenizer else 0
+    model.generation_config.pad_token_id = tokenizer.pad_token_id if tokenizer else 0
+    model.generation_config.eos_token_id = tokenizer.eos_token_id if tokenizer else 0
+    model.generation_config.max_length = max_length
     model.config.vocab_size = decoder_config.vocab_size
 
-    model.config.decoder.pad_token_id = model.config.pad_token_id
+    model.config.decoder.pad_token_id = tokenizer.pad_token_id if tokenizer else 0
 
     return model
 
