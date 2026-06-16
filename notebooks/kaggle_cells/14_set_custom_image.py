@@ -9,7 +9,7 @@ Replace the path with your own image location.
 # Option A: Path to an image already on Kaggle or working dir
 CUSTOM_IMAGE_PATH = None  # e.g., "/kaggle/input/my-test/image.jpg"
 
-# Option B: Copy test image from BN-HTRd test set as an example:
+# Option B: Use a test set sample as example:
 if os.path.exists(test_csv):
     test_df = pd.read_csv(test_csv)
     sample = test_df.iloc[0]
