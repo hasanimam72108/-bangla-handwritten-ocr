@@ -35,18 +35,14 @@ class LineDataset(Dataset):
         image = Image.open(img_path).convert("RGB")
         pixel_values = self.transform(image)
 
-        encoding = self.tokenizer(
-            text,
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors="pt",
-        )
-        labels = encoding["input_ids"].squeeze(0)
-        if hasattr(encoding, "attention_mask"):
-            attention_mask = encoding["attention_mask"].squeeze(0)
-        else:
-            attention_mask = (labels != self.tokenizer.pad_token_id).long()
+        token_ids = self.tokenizer.encode(text)
+        token_ids = token_ids[:self.max_length - 1] + [self.tokenizer.eos_token_id]
+        pad_len = self.max_length - len(token_ids)
+        if pad_len > 0:
+            token_ids = token_ids + [self.tokenizer.pad_token_id] * pad_len
+
+        labels = torch.tensor(token_ids, dtype=torch.long)
+        attention_mask = (labels != self.tokenizer.pad_token_id).long()
 
         return {
             "pixel_values": pixel_values,
