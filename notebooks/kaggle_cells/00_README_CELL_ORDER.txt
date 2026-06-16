@@ -22,6 +22,5 @@ Cell #  | File                       | What it does
   16    | 16_export_model.py         | Copy model to output directory for download
 
 NOTES:
-- Ignore the old 03_load_dataset.py (without 's') — use 03_load_datasets.py instead.
 - Cells 3-6 must run sequentially (they share variables).
 - Cells 10-15 require Cell 7 (training) to have completed successfully.
