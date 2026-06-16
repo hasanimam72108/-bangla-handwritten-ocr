@@ -35,7 +35,8 @@ class LineDataset(Dataset):
         image = Image.open(img_path).convert("RGB")
         pixel_values = self.transform(image)
 
-        token_ids = self.tokenizer.encode(text)
+        tokens = self.tokenizer._tokenize(text)
+        token_ids = [self.tokenizer._convert_token_to_id(t) for t in tokens]
         token_ids = token_ids[:self.max_length - 1] + [self.tokenizer.eos_token_id]
         pad_len = self.max_length - len(token_ids)
         if pad_len > 0:
