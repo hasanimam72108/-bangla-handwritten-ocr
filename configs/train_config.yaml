@@ -1,0 +1,30 @@
+model:
+  encoder_name: "google/vit-base-patch16-384"
+  decoder_name: "gpt2"
+  max_length: 256
+  dropout: 0.1
+  label_smoothing: 0.1
+
+training:
+  batch_size: 8
+  epochs: 100
+  learning_rate: 5.0e-5
+  weight_decay: 0.01
+  warmup_steps: 500
+  gradient_clip: 1.0
+  mixed_precision: true
+  early_stop_patience: 10
+  save_every: 5
+  log_every: 50
+
+data:
+  image_height: 384
+  image_width: 384
+  augment: true
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+
+tokenizer:
+  type: "bng"  # "bpe" or "bng"
+  vocab_size: 5000  # only used for bpe
