@@ -67,6 +67,11 @@ class BanglaBPETokenizer(PreTrainedTokenizer):
         eos_token: str = "</s>",
         **kwargs
     ):
+        self._vocab = {}
+        self._ids_to_tokens = {}
+        self._bpe_ranks = {}
+        self._cache = {}
+
         super().__init__(
             unk_token=unk_token,
             pad_token=pad_token,
@@ -74,10 +79,6 @@ class BanglaBPETokenizer(PreTrainedTokenizer):
             eos_token=eos_token,
             **kwargs
         )
-        self._vocab = {}
-        self._ids_to_tokens = {}
-        self._bpe_ranks = {}
-        self._cache = {}
 
         if vocab_file and os.path.exists(vocab_file):
             self._load_vocab(vocab_file)
@@ -132,6 +133,10 @@ class BanglaGraphemeTokenizer(PreTrainedTokenizer):
         eos_token: str = "</s>",
         **kwargs
     ):
+        self.graphemizer = BnGraphemizer()
+        self._vocab = {}
+        self._ids_to_tokens = {}
+
         super().__init__(
             unk_token=unk_token,
             pad_token=pad_token,
@@ -139,9 +144,6 @@ class BanglaGraphemeTokenizer(PreTrainedTokenizer):
             eos_token=eos_token,
             **kwargs
         )
-        self.graphemizer = BnGraphemizer()
-        self._vocab = {}
-        self._ids_to_tokens = {}
 
         if vocab_file and os.path.exists(vocab_file):
             self._load_vocab(vocab_file)
