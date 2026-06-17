@@ -84,8 +84,17 @@ class ImageTransform:
                 transforms.ColorJitter(brightness=0.3, contrast=0.3),
                 transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.0)),
                 transforms.RandomPerspective(distortion_scale=0.1, p=0.4, fill=255),
+                transforms.ToTensor(),
                 transforms.RandomErasing(p=0.25, scale=(0.02, 0.12), ratio=(0.3, 3.3), value=255),
-            ] + base_transforms
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            ]
+            self.transform = transforms.Compose(base_transforms)
+        else:
+            base_transforms = [
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            ]
+            self.transform = transforms.Compose(base_transforms)
         self.transform = transforms.Compose(base_transforms)
 
     def __call__(self, img: Image.Image) -> torch.Tensor:
