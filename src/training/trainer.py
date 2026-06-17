@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.cuda.amp import GradScaler, autocast
+from torch.amp import GradScaler, autocast
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
@@ -41,7 +41,7 @@ class Trainer:
             self.optimizer, T_max=total_steps - warmup_steps
         )
 
-        self.scaler = GradScaler(enabled=config["training"]["mixed_precision"])
+        self.scaler = GradScaler("cuda", enabled=config["training"]["mixed_precision"])
         self.criterion = nn.CrossEntropyLoss(
             label_smoothing=config["model"]["label_smoothing"],
             ignore_index=tokenizer.pad_token_id,
@@ -64,7 +64,7 @@ class Trainer:
 
             self.optimizer.zero_grad()
 
-            with autocast(enabled=self.config["training"]["mixed_precision"]):
+            with autocast("cuda", enabled=self.config["training"]["mixed_precision"]):
                 outputs = self.model(
                     pixel_values=pixel_values,
                     labels=labels,

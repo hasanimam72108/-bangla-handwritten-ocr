@@ -184,7 +184,6 @@ class BanglaGraphemeTokenizer(PreTrainedTokenizer):
 
     def build_vocab_from_texts(self, texts: List[str]):
         grapheme_set = set()
-        grapheme_set.update(["<pad>", "<unk>", "<s>", "</s>", " "])
         for text in texts:
             for word in text.split():
                 graphemes = self.graphemizer.parse(word)
@@ -192,7 +191,22 @@ class BanglaGraphemeTokenizer(PreTrainedTokenizer):
                     grapheme_set.add(g)
 
         sorted_graphemes = sorted(grapheme_set)
-        self._vocab = {g: i for i, g in enumerate(sorted_graphemes)}
+
+        self._vocab = {}
+        special_tokens = [self.unk_token, self.pad_token, self.bos_token, self.eos_token]
+        for i, token in enumerate(special_tokens):
+            self._vocab[token] = i
+
+        next_id = len(special_tokens)
+        for g in sorted_graphemes:
+            if g not in special_tokens and g != " ":
+                self._vocab[g] = next_id
+                next_id += 1
+
+        if " " not in self._vocab:
+            self._vocab[" "] = next_id
+            next_id += 1
+
         self._ids_to_tokens = {i: g for g, i in self._vocab.items()}
 
 

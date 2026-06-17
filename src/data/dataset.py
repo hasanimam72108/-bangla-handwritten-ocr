@@ -29,7 +29,7 @@ class LineDataset(Dataset):
 
     def __getitem__(self, idx: int):
         row = self.df.iloc[idx]
-        img_path = os.path.join(self.image_dir, row["image"])
+        img_path = row["image"] if os.path.isabs(row["image"]) else os.path.join(self.image_dir, row["image"])
         text = str(row["text"])
 
         image = Image.open(img_path).convert("RGB")
