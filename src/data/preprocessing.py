@@ -73,10 +73,18 @@ class ImageTransform:
         ]
         if augment:
             base_transforms = [
-                transforms.RandomAffine(degrees=2, shear=5, fill=255),
-                transforms.ColorJitter(brightness=0.2, contrast=0.2),
+                transforms.RandomRotation(degrees=5, fill=255),
+                transforms.RandomAffine(
+                    degrees=3,
+                    translate=(0.03, 0.03),
+                    scale=(0.92, 1.08),
+                    shear=8,
+                    fill=255,
+                ),
+                transforms.ColorJitter(brightness=0.3, contrast=0.3),
                 transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.0)),
-                transforms.RandomPerspective(distortion_scale=0.1, p=0.3, fill=255),
+                transforms.RandomPerspective(distortion_scale=0.1, p=0.4, fill=255),
+                transforms.RandomErasing(p=0.25, scale=(0.02, 0.12), ratio=(0.3, 3.3), value=255),
             ] + base_transforms
         self.transform = transforms.Compose(base_transforms)
 

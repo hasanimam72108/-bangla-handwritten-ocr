@@ -22,6 +22,11 @@ def evaluate_model(model, dataloader, tokenizer, device):
     exact_matches = 0
     total = 0
 
+    model.generation_config.pad_token_id = tokenizer.pad_token_id
+    model.generation_config.eos_token_id = tokenizer.eos_token_id
+    model.config.pad_token_id = tokenizer.pad_token_id
+    model.config.eos_token_id = tokenizer.eos_token_id
+
     for batch in dataloader:
         pixel_values = batch["pixel_values"].to(device)
         labels = batch["labels"]
@@ -37,6 +42,10 @@ def evaluate_model(model, dataloader, tokenizer, device):
         for i, gen_ids in enumerate(generated_ids):
             prediction = tokenizer.decode(gen_ids, skip_special_tokens=True)
             ground_truth = texts[i]
+            if total < 3:
+                print(f"\nSample {total+1}:")
+                print(f"  GT: {ground_truth}")
+                print(f"  PR: {prediction}")
 
             total_cer += compute_cer(prediction, ground_truth)
             total_wer += compute_wer(prediction, ground_truth)

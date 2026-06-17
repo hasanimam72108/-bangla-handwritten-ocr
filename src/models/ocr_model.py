@@ -15,6 +15,7 @@ def build_model(
     tokenizer=None,
     max_length: int = 256,
     dropout: float = 0.1,
+    freeze_encoder: bool = True,
 ) -> VisionEncoderDecoderModel:
     encoder_config = AutoConfig.from_pretrained(encoder_name)
     encoder = AutoModel.from_pretrained(encoder_name, config=encoder_config)
@@ -34,6 +35,10 @@ def build_model(
 
     model = VisionEncoderDecoderModel(encoder=encoder, decoder=decoder)
 
+    if freeze_encoder:
+        for param in model.encoder.parameters():
+            param.requires_grad = False
+
     bos = tokenizer.bos_token_id if tokenizer else 0
     pad = tokenizer.pad_token_id if tokenizer else 0
     eos = tokenizer.eos_token_id if tokenizer else 0
@@ -44,6 +49,7 @@ def build_model(
     model.config.vocab_size = decoder_config.vocab_size
 
     model.config.decoder.pad_token_id = pad
+    model.config.decoder.eos_token_id = eos
 
     model.generation_config.decoder_start_token_id = bos
     model.generation_config.pad_token_id = pad

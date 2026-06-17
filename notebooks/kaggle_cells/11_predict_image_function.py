@@ -36,6 +36,7 @@ def predict_image(model_path, image_path, tokenizer_type="bng"):
         tokenizer=tokenizer,
         max_length=config["model"]["max_length"],
         dropout=config["model"]["dropout"],
+        freeze_encoder=True,
     )
     ckpt = torch.load(model_path, map_location=device)
     model.load_state_dict(ckpt["model_state_dict"])
@@ -68,7 +69,7 @@ if os.path.exists(best_model):
     if os.path.exists(test_csv):
         test_df = pd.read_csv(test_csv)
         sample = test_df.iloc[0]
-        img_path = os.path.join(DATA_DIR, "test", sample["image"])
+        img_path = sample["image"] if os.path.isabs(sample["image"]) else os.path.join(DATA_DIR, "test", sample["image"])
         if os.path.exists(img_path):
             print(f"Ground truth: {sample['text']}")
             pred = predict_image(best_model, img_path, "bng")
