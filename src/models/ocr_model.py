@@ -52,7 +52,8 @@ def build_model(
     model.config.decoder_start_token_id = bos
     model.config.pad_token_id = pad
     model.config.eos_token_id = eos
-    model.config.vocab_size = decoder_config.vocab_size
+    if tokenizer is not None:
+        model.config.vocab_size = tokenizer.vocab_size
 
     model.config.decoder.pad_token_id = pad
     model.config.decoder.eos_token_id = eos
