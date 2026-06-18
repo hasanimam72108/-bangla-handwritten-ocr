@@ -1,26 +1,17 @@
 KAGGLE NOTEBOOK CELL ORDER
 ===========================
 Paste each file's content into a separate code cell in the following order.
+This is the updated workflow perfectly tailored for your Bongabdo and BanglaWriting datasets.
 
 Cell #  | File                       | What it does
 --------|----------------------------|---------------------------------------------------------------
-   1    | 01_clone_repo.py           | Clone the GitHub repo
-   2    | 02_install_deps.py         | Install Python dependencies
-   3    | 03_load_datasets.py        | Scan Kaggle inputs (Bongabdo + BanglaWriting), load images & text
-   4    | 04_save_images.py          | Save images to working dir + create unified labels.csv
-   5    | 05_show_stats.py           | Display dataset statistics (total samples, unique words, etc.)
-   6    | 06_split_dataset.py        | Split into train/val/test (70/15/15)
-   7    | 07_train_model.py          | TRAIN the model with BnGraphemizer tokenizer (~2-5 hours)
-   8    | 08_train_bpe_optional.py   | (Optional) Train model with BPE tokenizer for comparison
-   9    | 09_evaluate.py             | Evaluate the trained model on test set (CER/WER)
-  10    | 10_display_test_samples.py | Show 5 random test images with ground truth
-  11    | 11_predict_image_function.py | Define predict_image() and test on first sample
-  12    | 12_test_generalization.py  | Test on 5 random samples to check generalization
-  13    | 13_upload_own_image.py     | Instructions for uploading your own image
-  14    | 14_set_custom_image.py     | Set the path to your custom test image
-  15    | 15_run_custom_prediction.py | Run model on your custom image and see result
-  16    | 16_export_model.py         | Copy model to output directory for download
+   1    | 01_clone_and_install.py    | Clone the GitHub repo and install requirements.txt
+   2    | 02_prepare_data.py         | Runs the auto-cropping script to convert your full pages to lines
+   3    | 03_train_model.py          | Trains the model on the newly cropped data
+   4    | 04_evaluate_model.py       | Evaluates the trained model (CER/WER)
+   5    | 05_predict_sample.py       | Picks a random validation image, shows it, and predicts text
 
 NOTES:
-- Cells 3-6 must run sequentially (they share variables).
-- Cells 10-15 require Cell 7 (training) to have completed successfully.
+- Ensure your Kaggle notebook has GPU T4 x2 enabled.
+- Ensure you have added the two datasets via Kaggle's "Add Input" button.
+- Wait for Cell 3 (Training) to completely finish before running Cells 4 and 5.
