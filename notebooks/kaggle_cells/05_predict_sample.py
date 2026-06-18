@@ -19,7 +19,7 @@ ground_truth = sample["text"]
 print(f"Ground Truth: {ground_truth}")
 
 # Run prediction script
-!python predict.py --image {img_path} --checkpoint /kaggle/working/checkpoints/best_model.pt --tokenizer bng
+!python predict.py --image {img_path} --checkpoint /kaggle/working/checkpoints/best_model.pt --tokenizer bng --data_dir /kaggle/working/data
 
 # Display image
 img = Image.open(img_path)
