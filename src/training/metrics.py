@@ -27,7 +27,8 @@ def evaluate_model(model, dataloader, tokenizer, device):
     model.config.pad_token_id = tokenizer.pad_token_id
     model.config.eos_token_id = tokenizer.eos_token_id
 
-    for batch in dataloader:
+    from tqdm import tqdm
+    for batch in tqdm(dataloader, desc="Validating"):
         pixel_values = batch["pixel_values"].to(device)
         labels = batch["labels"]
         texts = batch["texts"]
@@ -35,7 +36,7 @@ def evaluate_model(model, dataloader, tokenizer, device):
         generated_ids = model.generate(
             pixel_values,
             max_length=model.generation_config.max_length,
-            num_beams=4,
+            num_beams=1,
             early_stopping=True,
         )
 
