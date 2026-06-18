@@ -105,7 +105,7 @@ def main():
         tokenizer=tokenizer,
         max_length=config["model"]["max_length"],
         dropout=config["model"]["dropout"],
-        freeze_encoder=False,
+        freeze_encoder=True,
     )
     model.to(device)
 
