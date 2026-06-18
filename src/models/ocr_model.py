@@ -10,30 +10,36 @@ from transformers import (
 
 
 def build_model(
-    encoder_name: str = "google/vit-base-patch16-384",
-    decoder_name: str = "gpt2",
+    encoder_name: str = "microsoft/trocr-base-handwritten",
+    decoder_name: str = "microsoft/trocr-base-handwritten",
     tokenizer=None,
     max_length: int = 256,
     dropout: float = 0.1,
-    freeze_encoder: bool = True,
+    freeze_encoder: bool = False,
 ) -> VisionEncoderDecoderModel:
-    encoder_config = AutoConfig.from_pretrained(encoder_name)
-    encoder = AutoModel.from_pretrained(encoder_name, config=encoder_config)
-
-    decoder_config = AutoConfig.from_pretrained(decoder_name)
-    decoder_config.is_decoder = True
-    decoder_config.add_cross_attention = True
-    decoder_config.max_position_embeddings = max_length
-    decoder_config.dropout = dropout
-    decoder_config.attention_dropout = dropout
-    decoder_config.resid_pdrop = dropout
-
-    if tokenizer is not None:
-        decoder_config.vocab_size = tokenizer.vocab_size
-
-    decoder = AutoModelForCausalLM.from_config(decoder_config)
-
-    model = VisionEncoderDecoderModel(encoder=encoder, decoder=decoder)
+    if encoder_name == decoder_name:
+        model = VisionEncoderDecoderModel.from_pretrained(encoder_name)
+        if tokenizer is not None:
+            model.decoder.resize_token_embeddings(tokenizer.vocab_size)
+            model.config.vocab_size = tokenizer.vocab_size
+            model.config.decoder.vocab_size = tokenizer.vocab_size
+    else:
+        encoder_config = AutoConfig.from_pretrained(encoder_name)
+        encoder = AutoModel.from_pretrained(encoder_name, config=encoder_config)
+    
+        decoder_config = AutoConfig.from_pretrained(decoder_name)
+        decoder_config.is_decoder = True
+        decoder_config.add_cross_attention = True
+        decoder_config.max_position_embeddings = max_length
+        decoder_config.dropout = dropout
+        decoder_config.attention_dropout = dropout
+        decoder_config.resid_pdrop = dropout
+    
+        if tokenizer is not None:
+            decoder_config.vocab_size = tokenizer.vocab_size
+    
+        decoder = AutoModelForCausalLM.from_config(decoder_config)
+        model = VisionEncoderDecoderModel(encoder=encoder, decoder=decoder)
 
     if freeze_encoder:
         for param in model.encoder.parameters():
