@@ -1,6 +1,6 @@
 KAGGLE NOTEBOOK CELL ORDER
 ===========================
-Paste each file's content into a separate code cell in order.
+Paste each file's content into a separate code cell in the following order.
 
 Cell #  | File                       | What it does
 --------|----------------------------|---------------------------------------------------------------
