@@ -1,0 +1,5 @@
+Total .txt files found: 16256
+First 3 files:
+/BN-HTR_Dataset/Recognition_Ground_Truth_Texts/7/7.txt
+/BN-HTR_Dataset/Recognition_Ground_Truth_Texts/135/135.txt
+/BN-HTR_Dataset/Recognition_Ground_Truth_Texts/47/47.txt

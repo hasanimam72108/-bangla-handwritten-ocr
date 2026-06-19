@@ -1,170 +1,83 @@
 import os
 import glob
-import cv2
 import pandas as pd
-import numpy as np
-from pathlib import Path
-from sklearn.model_selection import train_test_split
+import shutil
+from tqdm import tqdm
 
-def segment_lines(image_path, text_content):
-    """
-    Given an image path and its full text, attempt to crop lines.
-    Returns a list of cropped image numpy arrays and corresponding text lines.
-    """
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if img is None:
-        return [], []
+def prepare_data():
+    # Correct base path for the Kaggle dataset
+    base_dir = "/kaggle/input/datasets/jawadurrafid/bn-htrd-dataset/BN-HTRd A Benchmark Dataset for Document Level Offline Bangla Handwritten Text Recognition (HTR)/BN-HTR_Dataset/BN-HTR_Dataset"
     
-    # Binarize
-    _, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    
-    # Horizontal projection profile
-    proj = np.sum(thresh, axis=1)
-    
-    # Smooth the projection to find distinct lines
-    kernel_size = max(5, img.shape[0] // 100)
-    kernel = np.ones(kernel_size) / kernel_size
-    proj_smoothed = np.convolve(proj, kernel, mode='same')
-    
-    # Threshold for finding text lines
-    proj_threshold = np.max(proj_smoothed) * 0.1
-    is_text = proj_smoothed > proj_threshold
-    
-    lines = []
-    start_idx = -1
-    for i in range(len(is_text)):
-        if is_text[i] and start_idx == -1:
-            start_idx = i
-        elif not is_text[i] and start_idx != -1:
-            # End of a line segment
-            if i - start_idx > 10: # minimum pixel height of a line
-                lines.append((max(0, start_idx - 10), min(img.shape[0], i + 10)))
-            start_idx = -1
-            
-    if start_idx != -1 and img.shape[0] - start_idx > 10:
-        lines.append((max(0, start_idx - 10), img.shape[0]))
-        
-    # Split text into lines/sentences
-    # We split by '।' (dari), '?', '!', or newlines.
-    import re
-    text_content = text_content.strip()
-    raw_text_lines = re.split(r'[\n]+', text_content)
-    text_lines = []
-    for rl in raw_text_lines:
-        sub_lines = [s.strip() for s in re.split(r'(?<=[।?!])\s+', rl) if s.strip()]
-        if not sub_lines:
-            text_lines.append(rl.strip())
-        else:
-            text_lines.extend(sub_lines)
-            
-    text_lines = [t for t in text_lines if len(t) > 2]
-    
-    # Match cropped lines to text_lines.
-    cropped_imgs = []
-    mapped_texts = []
-    
-    # Map 1-to-1 up to the minimum length
-    min_len = min(len(lines), len(text_lines))
-    if min_len == 0:
-        return [], []
-        
-    img_color = cv2.imread(image_path)
-    for i in range(min_len):
-        y1, y2 = lines[i]
-        crop = img_color[y1:y2, :]
-        cropped_imgs.append(crop)
-        mapped_texts.append(text_lines[i])
-        
-    return cropped_imgs, mapped_texts
-
-
-def main():
-    # Kaggle input paths
-    datasets = [
-        "/kaggle/input/banglawriting-with-page-level-annotations/Annotations",
-        "/kaggle/input/handwritten-text-recognition-bongabdo/Bongabdo1429/Annotations",
-        # Adding a fallback path for Kaggle structure variances
-        "/kaggle/input/datasets/ayanwap7/banglawriting-with-page-level-annotations/Annotations",
-        "/kaggle/input/datasets/joebeachcapital/handwritten-text-recognition-bongabdo/Bongabdo1429/Annotations"
-    ]
+    text_dir = os.path.join(base_dir, "Recognition_Ground_Truth_Texts")
+    lines_dir = os.path.join(base_dir, "Segmentation_Images", "Lines")
     
     output_dir = "/kaggle/working/data"
     os.makedirs(os.path.join(output_dir, "train"), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, "val"), exist_ok=True)
     
-    all_data = []
-    img_extensions = ['.jpg', '.jpeg', '.png']
-    global_idx = 0
+    data = []
     
-    for ann_dir in datasets:
-        if not os.path.exists(ann_dir):
+    # 1. Iterate over each document folder (e.g. '7', '135')
+    doc_folders = [f for f in os.listdir(text_dir) if os.path.isdir(os.path.join(text_dir, f))]
+    
+    print(f"Found {len(doc_folders)} document folders. Processing...")
+    
+    for doc_id in tqdm(doc_folders):
+        txt_path = os.path.join(text_dir, doc_id, f"{doc_id}.txt")
+        if not os.path.exists(txt_path):
             continue
             
-        print(f"Processing directory: {ann_dir}")
-        img_dir = ann_dir.replace("Annotations", "Images")
+        # Read all text lines for this document
+        with open(txt_path, 'r', encoding='utf-8') as f:
+            # Drop empty lines at the end but keep formatting
+            text_lines = [line.strip() for line in f.read().split('\n') if line.strip()]
             
-        txt_files = glob.glob(os.path.join(ann_dir, "*.txt"))
+        # Now look for the segmented images for this document
+        doc_lines_dir = os.path.join(lines_dir, doc_id)
+        if not os.path.exists(doc_lines_dir):
+            continue
+            
+        # Find writer folders like '7_1', '7_2' inside '7'
+        writer_folders = [f for f in os.listdir(doc_lines_dir) if os.path.isdir(os.path.join(doc_lines_dir, f))]
         
-        for txt_file in txt_files:
-            with open(txt_file, 'r', encoding='utf-8') as f:
-                text = f.read()
+        for writer_id in writer_folders:
+            writer_dir = os.path.join(doc_lines_dir, writer_id)
+            
+            # For each writer, they should have cropped images like '7_1_1.jpg', '7_1_2.jpg'
+            # We match the integer suffix to the text_lines index
+            images = glob.glob(os.path.join(writer_dir, "*.*"))
+            image_files = [img for img in images if img.lower().endswith(('.jpg', '.png', '.jpeg'))]
+            
+            for img_path in image_files:
+                img_name = os.path.basename(img_path) # e.g., '7_1_3.jpg'
+                base_name = os.path.splitext(img_name)[0] # e.g., '7_1_3'
                 
-            base_name = os.path.splitext(os.path.basename(txt_file))[0]
-            
-            # Find matching image
-            img_path = None
-            for ext in img_extensions:
-                cand = os.path.join(img_dir, base_name + ext)
-                if os.path.exists(cand):
-                    img_path = cand
-                    break
-            
-            # For bongabdo, sometimes the image has a suffix 'a' or 'b'
-            if img_path is None:
-                cand_files = glob.glob(os.path.join(img_dir, base_name + "*.*"))
-                if cand_files:
-                    img_path = cand_files[0]
+                try:
+                    # Extract the line number (the last part after the last underscore)
+                    line_idx_str = base_name.split('_')[-1]
+                    line_idx = int(line_idx_str) - 1 # 0-indexed for our array
                     
-            if img_path and os.path.exists(img_path):
-                crops, texts = segment_lines(img_path, text)
-                for crop, t in zip(crops, texts):
-                    # Save some minimum dimensions
-                    if crop.shape[0] > 10 and crop.shape[1] > 10:
-                        all_data.append({
-                            "crop_img": crop,
-                            "text": t,
-                            "filename": f"crop_{global_idx}.jpg"
-                        })
-                        global_idx += 1
-                    
-    print(f"Total extracted line pairs: {len(all_data)}")
+                    if 0 <= line_idx < len(text_lines):
+                        text = text_lines[line_idx]
+                        
+                        if len(text) > 0:
+                            # Copy image to Kaggle working dir
+                            dest_path = os.path.join(output_dir, "train", img_name)
+                            shutil.copy2(img_path, dest_path)
+                            
+                            data.append({
+                                "image": img_name,
+                                "text": text
+                            })
+                except Exception as e:
+                    pass # Skip if filename format is unexpected
+
+    df = pd.DataFrame(data)
+    csv_path = os.path.join(output_dir, "train.csv")
+    df.to_csv(csv_path, index=False)
     
-    if len(all_data) == 0:
-        print("No data processed. Ensure paths are correct when running on Kaggle.")
-        # Create a dummy CSV so it doesn't fail completely if testing locally
-        os.makedirs(output_dir, exist_ok=True)
-        pd.DataFrame(columns=["image", "text"]).to_csv(os.path.join(output_dir, "train.csv"), index=False)
-        pd.DataFrame(columns=["image", "text"]).to_csv(os.path.join(output_dir, "val.csv"), index=False)
-        return
-        
-    train_data, val_data = train_test_split(all_data, test_size=0.15, random_state=42)
-    
-    def save_split(data_list, split_name):
-        records = []
-        split_dir = os.path.join(output_dir, split_name)
-        for item in data_list:
-            out_path = os.path.join(split_dir, item["filename"])
-            cv2.imwrite(out_path, item["crop_img"])
-            records.append({
-                "image": item["filename"],
-                "text": item["text"]
-            })
-        df = pd.DataFrame(records)
-        df.to_csv(os.path.join(output_dir, f"{split_name}.csv"), index=False)
-        print(f"Saved {split_name}.csv with {len(df)} records")
-        
-    save_split(train_data, "train")
-    save_split(val_data, "val")
+    print(f"\nSuccessfully aligned and mapped {len(df)} perfectly cropped line images to text!")
+    print(f"Saved CSV to {csv_path}")
+    print(df.head())
 
 if __name__ == "__main__":
-    main()
+    prepare_data()
