@@ -1,6 +1,84 @@
 """
-# CELL 2: Prepare the Kaggle Datasets (Auto-Cropping into lines)
+# CELL 2: Prepare Dataset
 Paste this into the second code cell.
-This executes the new script we wrote to parse your datasets and crop them into single lines.
+This prepares the BN-HTRd dataset by matching the line images to their text.
 """
-!python scripts/prepare_data.py
+import os
+import glob
+import pandas as pd
+import shutil
+from tqdm import tqdm
+
+# Correct base path for the Kaggle dataset
+base_dir = "/kaggle/input/datasets/jawadurrafid/bn-htrd-dataset/BN-HTRd A Benchmark Dataset for Document Level Offline Bangla Handwritten Text Recognition (HTR)/BN-HTR_Dataset/BN-HTR_Dataset"
+
+text_dir = os.path.join(base_dir, "Recognition_Ground_Truth_Texts")
+lines_dir = os.path.join(base_dir, "Segmentation_Images", "Lines")
+
+output_dir = "/kaggle/working/data"
+os.makedirs(os.path.join(output_dir, "train"), exist_ok=True)
+
+data = []
+
+# 1. Iterate over each document folder (e.g. '7', '135')
+doc_folders = [f for f in os.listdir(text_dir) if os.path.isdir(os.path.join(text_dir, f))]
+
+print(f"Found {len(doc_folders)} document folders. Processing...")
+
+for doc_id in tqdm(doc_folders):
+    txt_path = os.path.join(text_dir, doc_id, f"{doc_id}.txt")
+    if not os.path.exists(txt_path):
+        continue
+        
+    # Read all text lines for this document
+    with open(txt_path, 'r', encoding='utf-8') as f:
+        # Drop empty lines at the end but keep formatting
+        text_lines = [line.strip() for line in f.read().split('\n') if line.strip()]
+        
+    # Now look for the segmented images for this document
+    doc_lines_dir = os.path.join(lines_dir, doc_id)
+    if not os.path.exists(doc_lines_dir):
+        continue
+        
+    # Find writer folders like '7_1', '7_2' inside '7'
+    writer_folders = [f for f in os.listdir(doc_lines_dir) if os.path.isdir(os.path.join(doc_lines_dir, f))]
+    
+    for writer_id in writer_folders:
+        writer_dir = os.path.join(doc_lines_dir, writer_id)
+        
+        # For each writer, they have perfectly cropped images like '7_1_1.jpg', '7_1_2.jpg'
+        # We match the integer suffix to the text_lines index
+        images = glob.glob(os.path.join(writer_dir, "*.*"))
+        image_files = [img for img in images if img.lower().endswith(('.jpg', '.png', '.jpeg'))]
+        
+        for img_path in image_files:
+            img_name = os.path.basename(img_path) # e.g., '7_1_3.jpg'
+            base_name = os.path.splitext(img_name)[0] # e.g., '7_1_3'
+            
+            try:
+                # Extract the line number (the last part after the last underscore)
+                line_idx_str = base_name.split('_')[-1]
+                line_idx = int(line_idx_str) - 1 # 0-indexed for our array
+                
+                if 0 <= line_idx < len(text_lines):
+                    text = text_lines[line_idx]
+                    
+                    if len(text) > 0:
+                        # Copy image to Kaggle working dir
+                        dest_path = os.path.join(output_dir, "train", img_name)
+                        shutil.copy2(img_path, dest_path)
+                        
+                        data.append({
+                            "image": img_name,
+                            "text": text
+                        })
+            except Exception as e:
+                pass # Skip if filename format is unexpected
+
+df = pd.DataFrame(data)
+csv_path = os.path.join(output_dir, "train.csv")
+df.to_csv(csv_path, index=False)
+
+print(f"\nSuccessfully aligned and mapped {len(df)} perfectly cropped line images to text!")
+print(f"Saved CSV to {csv_path}")
+print(df.head())
