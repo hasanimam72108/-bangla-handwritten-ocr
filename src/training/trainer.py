@@ -126,7 +126,7 @@ class Trainer:
             )
 
             if epoch % self.config["training"]["save_every"] == 0:
-                ckpt_path = os.path.join(self.output_dir, f"checkpoint_epoch_{epoch}.pt")
+                ckpt_path = os.path.join(self.output_dir, "last_model.pt")
                 self.save_checkpoint(ckpt_path, epoch, val_metrics)
 
             if val_metrics["cer"] < self.best_cer:
