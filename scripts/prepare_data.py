@@ -36,15 +36,36 @@ def prepare_data():
         if not os.path.exists(doc_lines_dir):
             continue
             
-        # Find writer folders like '7_1', '7_2' inside '7'
-        writer_folders = [f for f in os.listdir(doc_lines_dir) if os.path.isdir(os.path.join(doc_lines_dir, f))]
+        # Find all page text files (e.g., '7_1.txt', '7_2.txt') to count boxes
+        page_txt_files = glob.glob(os.path.join(doc_lines_dir, f"{doc_id}_*.txt"))
         
-        for writer_id in writer_folders:
-            writer_dir = os.path.join(doc_lines_dir, writer_id)
+        # Sort them numerically by page number: 7_1.txt, 7_2.txt ...
+        def get_page_num(filepath):
+            filename = os.path.basename(filepath)
+            name = os.path.splitext(filename)[0] # '7_1'
+            return int(name.split('_')[-1])
             
-            # For each writer, they should have cropped images like '7_1_1.jpg', '7_1_2.jpg'
-            # We match the integer suffix to the text_lines index
-            images = glob.glob(os.path.join(writer_dir, "*.*"))
+        page_txt_files = sorted(page_txt_files, key=get_page_num)
+        
+        current_text_offset = 0
+        
+        for page_txt_path in page_txt_files:
+            page_name = os.path.splitext(os.path.basename(page_txt_path))[0] # '7_1'
+            
+            # Count how many YOLO bounding boxes are in this page
+            try:
+                with open(page_txt_path, 'r', encoding='utf-8') as pf:
+                    num_boxes = sum(1 for line in pf if line.strip())
+            except Exception:
+                continue
+                
+            page_folder = os.path.join(doc_lines_dir, page_name)
+            if not os.path.isdir(page_folder):
+                current_text_offset += num_boxes
+                continue
+                
+            # Now find all images in this page's folder
+            images = glob.glob(os.path.join(page_folder, "*.*"))
             image_files = [img for img in images if img.lower().endswith(('.jpg', '.png', '.jpeg'))]
             
             for img_path in image_files:
@@ -54,10 +75,13 @@ def prepare_data():
                 try:
                     # Extract the line number (the last part after the last underscore)
                     line_idx_str = base_name.split('_')[-1]
-                    line_idx = int(line_idx_str) - 1 # 0-indexed for our array
+                    k = int(line_idx_str) # 1-indexed line number in this specific page
                     
-                    if 0 <= line_idx < len(text_lines):
-                        text = text_lines[line_idx]
+                    # Global text index is the offset + (k - 1)
+                    global_text_idx = current_text_offset + (k - 1)
+                    
+                    if 0 <= global_text_idx < len(text_lines):
+                        text = text_lines[global_text_idx]
                         
                         if len(text) > 0:
                             # Copy image to Kaggle working dir
@@ -70,6 +94,9 @@ def prepare_data():
                             })
                 except Exception as e:
                     pass # Skip if filename format is unexpected
+                    
+            # Advance the global offset by the number of boxes in this page
+            current_text_offset += num_boxes
 
     from sklearn.model_selection import train_test_split
     df = pd.DataFrame(data)

@@ -11,10 +11,10 @@ import os
 import urllib.request
 
 # Download Bengali font so Matplotlib can display it
-font_path = "/kaggle/working/kalpurush.ttf"
+font_path = "/kaggle/working/HindSiliguri-Regular.ttf"
 if not os.path.exists(font_path):
     print("Downloading Bengali font for Matplotlib...")
-    url = "https://raw.githubusercontent.com/MinhasKamal/BengaliDictionary/master/BengaliDictionary/font/kalpurush.ttf"
+    url = "https://raw.githubusercontent.com/google/fonts/main/ofl/hindsiliguri/HindSiliguri-Regular.ttf"
     urllib.request.urlretrieve(url, font_path)
 
 bangla_font = FontProperties(fname=font_path)
