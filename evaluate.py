@@ -80,10 +80,9 @@ def main():
     metrics = evaluate_model(model, loader, tokenizer, device)
 
     print("\n" + "=" * 40)
-    print(f"Test Results:")
-    print(f"  CER (Character Error Rate):        {metrics['cer']:.4f}")
-    print(f"  WER (Word Error Rate):             {metrics['wer']:.4f}")
-    print(f"  Exact Match Accuracy:             {metrics['exact_match_accuracy']:.4f}")
+    print(f"Test Results (Supervisor Version):")
+    print(f"  Character Accuracy:        {(1 - metrics['cer']) * 100:.2f}%")
+    print(f"  Word Accuracy:             {(1 - metrics['wer']) * 100:.2f}%")
     print("=" * 40)
 
 
