@@ -1,22 +1,20 @@
 """
-# CELL 6: Inspect Cropped Images
-Create a new code cell in Kaggle and paste this code to visually inspect how well the auto-cropper worked.
+# CELL 3: Inspect Cropped Images
+Paste this into the third code cell.
+This visually inspects 5 random line-level crops before training.
 """
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
 
-# Load the training CSV
 train_csv_path = "/kaggle/working/data/train.csv"
 if not os.path.exists(train_csv_path):
     print("Data not found. Did you run the prepare_data cell?")
 else:
     df = pd.read_csv(train_csv_path)
     
-    # Pick 5 random samples
     samples = df.sample(5)
-    
     fig, axes = plt.subplots(5, 1, figsize=(12, 10))
     fig.tight_layout(pad=3.0)
     

@@ -71,13 +71,22 @@ def prepare_data():
                 except Exception as e:
                     pass # Skip if filename format is unexpected
 
+    from sklearn.model_selection import train_test_split
     df = pd.DataFrame(data)
-    csv_path = os.path.join(output_dir, "train.csv")
-    df.to_csv(csv_path, index=False)
+    
+    # Split 90% train, 10% validation
+    train_df, val_df = train_test_split(df, test_size=0.1, random_state=42)
+    
+    train_csv_path = os.path.join(output_dir, "train.csv")
+    val_csv_path = os.path.join(output_dir, "val.csv")
+    
+    train_df.to_csv(train_csv_path, index=False)
+    val_df.to_csv(val_csv_path, index=False)
     
     print(f"\nSuccessfully aligned and mapped {len(df)} perfectly cropped line images to text!")
-    print(f"Saved CSV to {csv_path}")
-    print(df.head())
+    print(f"Saved {len(train_df)} items to {train_csv_path}")
+    print(f"Saved {len(val_df)} items to {val_csv_path}")
+    print(train_df.head())
 
 if __name__ == "__main__":
     prepare_data()
