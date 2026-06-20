@@ -20,6 +20,16 @@ if os.path.exists(train_csv_path) and not os.path.exists(val_csv_path):
     print(f"Created train.csv ({len(train_df)}) and val.csv ({len(val_df)})")
 
 # Fix the validation image directory path!
-!ln -sf /kaggle/working/data/train /kaggle/working/data/val
+val_dir = "/kaggle/working/data/val"
+train_dir = "/kaggle/working/data/train"
+if not os.path.exists(val_dir) and os.path.exists(train_dir):
+    os.symlink(train_dir, val_dir)
 
-!python train.py --config configs/train_config.yaml --data_dir /kaggle/working/data --output_dir /kaggle/working/checkpoints
+# Automatically resume from the most recent model if it exists!
+resume_arg = ""
+if os.path.exists("/kaggle/working/checkpoints/last_model.pt"):
+    resume_arg = "--resume /kaggle/working/checkpoints/last_model.pt"
+elif os.path.exists("/kaggle/working/checkpoints/best_model.pt"):
+    resume_arg = "--resume /kaggle/working/checkpoints/best_model.pt"
+
+!python /kaggle/working/-bangla-handwritten-ocr/train.py --config /kaggle/working/-bangla-handwritten-ocr/configs/train_config.yaml --data_dir /kaggle/working/data --output_dir /kaggle/working/checkpoints {resume_arg}
