@@ -107,6 +107,9 @@ class BanglaBPETokenizer(PreTrainedTokenizer):
     def _convert_id_to_token(self, index: int) -> str:
         return self._ids_to_tokens.get(index, self.unk_token)
 
+    def convert_tokens_to_string(self, tokens: List[str]) -> str:
+        return "".join(tokens)
+
     def get_vocab(self) -> dict:
         return dict(self._vocab)
 
@@ -178,6 +181,9 @@ class BanglaGraphemeTokenizer(PreTrainedTokenizer):
 
     def _convert_id_to_token(self, index: int) -> str:
         return self._ids_to_tokens.get(index, self.unk_token)
+
+    def convert_tokens_to_string(self, tokens: List[str]) -> str:
+        return "".join(tokens)
 
     def get_vocab(self) -> dict:
         return dict(self._vocab)
