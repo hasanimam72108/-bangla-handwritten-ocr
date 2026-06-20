@@ -33,12 +33,13 @@ def evaluate_model(model, dataloader, tokenizer, device):
         labels = batch["labels"]
         texts = batch["texts"]
 
-        generated_ids = model.generate(
-            pixel_values,
-            max_length=model.generation_config.max_length,
-            num_beams=1,
-            early_stopping=True,
-        )
+        with torch.autocast(device_type="cuda" if "cuda" in str(device) else "cpu", dtype=torch.float16):
+            generated_ids = model.generate(
+                pixel_values,
+                max_length=model.generation_config.max_length,
+                num_beams=1,
+                early_stopping=True,
+            )
 
         for i, gen_ids in enumerate(generated_ids):
             prediction = tokenizer.decode(gen_ids, skip_special_tokens=True)
