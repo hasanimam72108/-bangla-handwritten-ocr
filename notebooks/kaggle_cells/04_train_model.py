@@ -19,4 +19,7 @@ if os.path.exists(train_csv_path) and not os.path.exists(val_csv_path):
     val_df.to_csv(val_csv_path, index=False)
     print(f"Created train.csv ({len(train_df)}) and val.csv ({len(val_df)})")
 
+# Fix the validation image directory path!
+!ln -sf /kaggle/working/data/train /kaggle/working/data/val
+
 !python train.py --config configs/train_config.yaml --data_dir /kaggle/working/data --output_dir /kaggle/working/checkpoints

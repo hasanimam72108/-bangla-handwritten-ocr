@@ -5,8 +5,19 @@ This visually inspects 5 random line-level crops before training.
 """
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 from PIL import Image
 import os
+import urllib.request
+
+# Download Bengali font so Matplotlib can display it
+font_path = "/kaggle/working/kalpurush.ttf"
+if not os.path.exists(font_path):
+    print("Downloading Bengali font for Matplotlib...")
+    url = "https://raw.githubusercontent.com/MinhasKamal/BengaliDictionary/master/BengaliDictionary/font/kalpurush.ttf"
+    urllib.request.urlretrieve(url, font_path)
+
+bangla_font = FontProperties(fname=font_path)
 
 train_csv_path = "/kaggle/working/data/train.csv"
 if not os.path.exists(train_csv_path):
@@ -25,7 +36,7 @@ else:
         try:
             img = Image.open(img_path)
             axes[i].imshow(img, cmap='gray' if img.mode == 'L' else None)
-            axes[i].set_title(text, fontdict={'fontsize': 14}, loc='left')
+            axes[i].set_title(text, fontproperties=bangla_font, fontsize=20, loc='left')
             axes[i].axis('off')
         except Exception as e:
             axes[i].set_title(f"Error loading {row['image']}: {e}", color="red")
