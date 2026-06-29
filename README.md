@@ -85,3 +85,10 @@ The grapheme tokenizer maps each visually distinct Bengali unit to one token, wh
   archivePrefix={arXiv},
 }
 ```
+
+
+
+## Authors
+
+- **Hasan Imam** ([GitHub: hasanimam72108](https://github.com/hasanimam72108))
+- **Jawadur Rafid** ([GitHub: jawadur13](https://github.com/jawadur13))
